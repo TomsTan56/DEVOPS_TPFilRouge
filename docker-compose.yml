@@ -1,0 +1,38 @@
+services: 
+  node: 
+    build: 
+      context:  .
+      dockerfile:  Dockerfile 
+    restart:  always 
+    ports: 
+      -  "3000:3000" 
+    environment: 
+      DB_HOST:  ${DB_HOST}
+      DB_USER:  ${DB_USER}
+      DB_PASSWORD:  ${DB_PASSWORD}
+      DB_NAME:  ${DB_NAME}
+    depends_on: #attendre que le srvices db soit prêt avant de démarrer le service node
+      -  db
+
+  db: 
+    image:  mysql:latest 
+    restart:  always 
+    environment: 
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE:  ${DB_NAME}
+    volumes: 
+      -  ./mysql_data:/var/lib/mysql 
+    ports: 
+      -  "3306:3306" 
+
+  phpmyadmin: 
+    image:  phpmyadmin/phpmyadmin:latest 
+    restart:  always 
+    depends_on: 
+      -  db 
+    environment: 
+      PMA_HOST:  db 
+      PMA_USER:  ${DB_USER}
+      PMA_PASSWORD:  ${DB_PASSWORD}
+    ports: 
+      -  "8080:80"
