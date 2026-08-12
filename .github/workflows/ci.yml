@@ -11,6 +11,24 @@ on:
 jobs : 
   build:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent #//"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    env:
+      DB_HOST: localhost
+      DB_USER: root
+      DB_PASSWORD: ""
+      DB_NAME: testdb
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -26,24 +44,7 @@ jobs :
       - name: Run tests
         run: npm test
 
-    services:
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-          MYSQL_DATABASE: testdb
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-    env:
-      DB_HOST: localhost
-      DB_USER: root
-      DB_PASSWORD: ""
-      DB_NAME: testdb
+    
 
   integration:
     runs-on: ubuntu-latest
@@ -62,6 +63,8 @@ jobs :
 
       - name: Run integration tests
         run: npm run test-integration
+
+        
 
     services:
       mysql:
@@ -99,4 +102,44 @@ jobs :
         run: |
           docker build -t tomatano/devops_tpfilrouge:latest .
           docker push tomatano/devops_tpfilrouge:latest
+
+  smoke_test:
+    runs-on: ubuntu-latest
+    needs: build_and_push_docker_image
+    steps:
+      - name: Pull Docker image
+        run: docker pull tomatano/devops_tpfilrouge:latest
+
+      - name: Run container
+        run: |
+          docker run -d --name smoke-test -p 3000:3000 tomatano/devops_tpfilrouge:latest
+
+      - name: Wait for service to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/api/tasks > /dev/null; then
+              echo "Service prêt !"
+              exit 0
+            fi
+            echo "Attente du service... ($i/30)"
+            sleep 2
+          done
+          echo "Le service n'a jamais répondu"
+          docker logs smoke-test
+          exit 1
+
+      - name: Smoke test HTTP request
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/tasks)
+          echo "Code HTTP reçu : $status"
+          if [ "$status" -ne 200 ]; then
+            echo "Smoke test KO"
+            docker logs smoke-test
+            exit 1
+          fi
+          echo "Smoke test OK"
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f smoke-test || true
     
