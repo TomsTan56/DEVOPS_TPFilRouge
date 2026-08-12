@@ -1,0 +1,15 @@
+mysql_data/**
+*.sock
+node_modules/
+.git/
+.gitignore
+docker-compose.yml
+.env
+tests/
+.dockerignore
+*.log
+Thumbs.db
+*.tmp 
+*~
+/test/ 
+*.spec.js

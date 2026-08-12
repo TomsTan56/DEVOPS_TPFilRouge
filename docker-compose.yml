@@ -1,5 +1,8 @@
+
+
 services: 
   node: 
+    image: tomatano/devops_tpfilrouge:latest
     build: 
       context:  .
       dockerfile:  Dockerfile 
@@ -14,6 +17,7 @@ services:
     depends_on: #attendre que le srvices db soit prêt avant de démarrer le service node
       -  db
 
+
   db: 
     image:  mysql:latest 
     restart:  always 
@@ -21,9 +25,10 @@ services:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE:  ${DB_NAME}
     volumes: 
-      -  ./mysql_data:/var/lib/mysql 
+      -  mysql_data:/var/lib/mysql 
     ports: 
       -  "3306:3306" 
+    
 
   phpmyadmin: 
     image:  phpmyadmin/phpmyadmin:latest 
@@ -36,3 +41,6 @@ services:
       PMA_PASSWORD:  ${DB_PASSWORD}
     ports: 
       -  "8080:80"
+
+volumes:
+  mysql_data:
