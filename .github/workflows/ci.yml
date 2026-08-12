@@ -33,7 +33,7 @@ jobs :
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
           MYSQL_DATABASE: testdb
           MYSQL_USER: testuser
-          MYSQL_PASSWORD: testpassword
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
         ports:
           - 3306:3306
         options: >-
@@ -44,7 +44,7 @@ jobs :
     env:
       DB_HOST: localhost
       DB_USER: testuser
-      DB_PASSWORD: testpassword
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       DB_NAME: testdb
 
   integration:
@@ -72,7 +72,7 @@ jobs :
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
           MYSQL_DATABASE: testdb
           MYSQL_USER: testuser
-          MYSQL_PASSWORD: testpassword
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
         ports:
           - 3306:3306
         options: >-
